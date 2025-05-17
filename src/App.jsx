@@ -57,5 +57,34 @@ export default function TodoApp(){
     localStorage.setItem('advancedTodos', JSON.stringify(todos))
   },[todos]);
 
-  useEffect(() => {},[])
+  useEffect(() => {
+    const now = new Date();
+    const overdueExists = todos.some(todo => 
+      !todo.completed && todo.dueDate && new Date(todo.dueDate) < now 
+    );
+
+    if(overdueExists){
+      document.title = " Overdue Task - Todo App"
+    }else{
+      document.title = "Todo App"
+    }
+  },[todos]);
+
+  const addTodo = () => {
+    if(input.trim() !== ''){
+      const now = new Date();
+      dispatch({
+        type: ADD_TODO,
+        payload:{
+          id: Date.now(),
+          text: input,
+          completed: false,
+          createdAt: now.toISOString(),
+          priority: newPriority,
+          dueDate: newDueDate || null,
+          notes: ''
+        }
+      })
+    }
+  }
 }
