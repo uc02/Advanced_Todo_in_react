@@ -84,7 +84,102 @@ export default function TodoApp(){
           dueDate: newDueDate || null,
           notes: ''
         }
-      })
+      });
+      setInput('');
+      setNewDueDate('');
+      setNewPriority('medium');
     }
+  };
+
+  const toggleTodo = (id) => {
+    dispatch({ type: TOGGLE_TODO, payload: id})
+  };
+
+  const deleteTodo = (id) => {
+    dispatch({ type: DELETE_TODO, payload: id});
+    if(selectedTodo && selectedTodo.id === id){
+      setSelectedTodo(null);
+      setShowTodoDetail(false)
+    }
+  };
+
+  const editTodo = (id, newText) => {
+    dispatch({
+      type: EDIT_TODO,
+      payload: {id, text: newText}
+    })
+  };
+
+  const setPriority = (id, priority) => {
+    dispatch({
+      type: SET_PRIORITY,
+      payload: { id, priority }
+    });
+  }
+
+  const setDueDate = (id, dueDate) => {
+    dispatch({
+      type: SET_DUE_DATE,
+      payload: { id, dueDate }
+    })
+  }
+  
+  const clearCompleted = () => {
+    dispatch({ type: CLEAR_COMPLETED })
+  }
+
+  const openTodoDetail = (todo) => {
+    setSelectedTodo(todo);
+    setShowTodoDetail(true)
+  }
+
+  let filteredTodos = todos.filter(todo => {
+    const statusMatch = 
+      filter === 'all' ? true :
+      filter === 'active' ? !todo.completed :
+      filter === 'completed' ? todo.completed :
+      filter === 'overdue' ? (!todo.completed && todo.dueDate && new Date(todo.dueDate) < new Date()) :
+      filter === 'today' ? (todo.dueDate && isToday(new Date(todo.dueDate))) :
+      true;
+
+      const searchMatch = todo.text.toLowerCase().includes(searchTerm.toLowerCase())
+
+      return statusMatch && searchMatch;
+  });
+
+  filteredTodos = [...filteredTodos].sort((a,b) => {
+    if(sortBy === 'createdAt'){
+      return new Date(b.createdAt) - new Date(a.createdAt);
+    } else if(sortBy === 'dueDate'){
+      if(!a.dueDate) return 1;
+      if(!b.dueDate) return -1;
+      return new Date(a.dueDate) - new Date(b.dueDate);
+    }else if(sortBy === 'priority'){
+      const priorityOrder = { high: 0, medium: 1, low: 2 };
+      return priorityOrder[a.priority] - priorityOrder[b.priority]
+    }
+    return 0;
+  });
+
+  function isToday(date){
+    const today = new Date();
+    return date.getDate() === today.getDate() &&
+           date.getMonth() === today.getMonth() &&
+           date.getFullYear() === today.getFullYear();
+  }
+
+  function formatDate(dateString){
+    if (!dateString) return '';
+    const date = new Date(dateString);
+    return date.toLocaleDateString('en-US', {
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric'
+    });
+  }
+
+  function isOverdue(dateString){
+    if(!dateString) return false;
+    return new Date(dateString)
   }
 }
